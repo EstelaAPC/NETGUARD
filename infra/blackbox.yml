@@ -1,0 +1,5 @@
+modules:
+  icmp:
+    prober: icmp
+    timeout: 2s
+

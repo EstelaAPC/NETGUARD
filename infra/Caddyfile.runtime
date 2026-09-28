@@ -1,0 +1,45 @@
+{
+	default_sni 192.168.56.15
+}
+
+http:// {
+	redir https://{host}{uri} 308
+}
+
+https://netguard.local, https://netguard, https://192.168.56.15 {
+	tls internal
+	encode gzip zstd
+
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+	}
+
+	handle /api {
+		rewrite * /health
+		reverse_proxy api:8000
+	}
+
+	handle_path /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle /grafana {
+		redir /grafana/ 308
+	}
+
+	handle /grafana/* {
+		reverse_proxy grafana:3000
+	}
+
+	handle {
+		reverse_proxy web:443 {
+			transport http {
+				tls
+				tls_insecure_skip_verify
+			}
+		}
+	}
+}

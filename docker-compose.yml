@@ -1,0 +1,409 @@
+services:
+  web:
+    depends_on:
+      api:
+        condition: service_healthy
+    build:
+      context: ./netguard-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    restart: unless-stopped
+    ports:
+      - "8081:443"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --no-check-certificate -O /dev/null https://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  reverse-proxy:
+    image: caddy:2.8-alpine
+    container_name: netguard-reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/Caddyfile.runtime:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_started
+      api:
+        condition: service_healthy
+      grafana:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "caddy validate --config /etc/caddy/Caddyfile >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db:
+    build:
+      context: ./infra
+      dockerfile: db/Dockerfile
+    image: netguard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-netguard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-netguard}
+      POSTGRES_DB: ${POSTGRES_DB:-netguard}
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U ${POSTGRES_USER:-netguard} -d ${POSTGRES_DB:-netguard} || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+    volumes:
+      - infra_dbdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  loop-risk-migrate:
+    build:
+      context: ./infra
+      dockerfile: db-maintenance/Dockerfile
+    image: netguard-loop-risk-migrate
+    restart: "no"
+    environment:
+      PGHOST: db
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-netguard}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-netguard}
+      PGDATABASE: ${POSTGRES_DB:-netguard}
+    command: ["/bin/sh", "/scripts/apply-loop-risk.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+  api:
+    build: ./api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+      NETGUARD_AUTH_ENABLED: ${NETGUARD_AUTH_ENABLED:-true}
+      NETGUARD_AUTH_SECRET: ${NETGUARD_AUTH_SECRET:-netguard-dev-auth-secret-change-me}
+      NETGUARD_AUTH_TOKEN_TTL_MINUTES: ${NETGUARD_AUTH_TOKEN_TTL_MINUTES:-480}
+      NETGUARD_SERVICE_TOKEN: ${NETGUARD_SERVICE_TOKEN:-netguard-local-service-token-change-me}
+      GRAFANA_PUBLIC_URL: ${GRAFANA_PUBLIC_URL:-/grafana}
+      GRAFANA_ORG_ID: ${GRAFANA_ORG_ID:-1}
+      # 192.168.56.20 fica reservado para o emulador de switch Switch Lab.
+      # A IA/Ollama deve ficar no IP do host acessivel pela VM NetGuard.
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://192.168.56.1:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
+      OLLAMA_TIMEOUT_SEC: ${OLLAMA_TIMEOUT_SEC:-240}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+      OLLAMA_NUM_GPU: ${OLLAMA_NUM_GPU:-}
+      AI_INSIGHTS_TTL_HOURS: ${AI_INSIGHTS_TTL_HOURS:-8}
+      POLL_INTERVAL: ${POLL_INTERVAL:-30}
+      SNMP_INTERVAL_SEC: ${SNMP_INTERVAL_SEC:-30}
+      DEFAULT_COLLECTION_TIMEOUT_SEC: ${DEFAULT_COLLECTION_TIMEOUT_SEC:-1}
+      DEFAULT_COLLECTION_RETRIES: ${DEFAULT_COLLECTION_RETRIES:-1}
+      NETGUARD_DEFAULT_USER_PASSWORD: ${NETGUARD_DEFAULT_USER_PASSWORD:-change-me-123}
+      NETGUARD_CORS_ORIGINS: ${NETGUARD_CORS_ORIGINS:-https://192.168.56.15,https://netguard.local,https://netguard,https://localhost,https://localhost:8081,https://127.0.0.1:8081,https://192.168.56.15:8081,http://localhost:8081,http://127.0.0.1:8081,http://192.168.56.15:8081}
+      ALERT_EMAIL_ENABLED: ${ALERT_EMAIL_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-}
+      ALERT_WEBHOOK_ENABLED: ${ALERT_WEBHOOK_ENABLED:-false}
+      WEBHOOK_PROVIDER: ${WEBHOOK_PROVIDER:-discord}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TELEGRAM_PARSE_MODE: ${TELEGRAM_PARSE_MODE:-}
+      NETGUARD_PUBLIC_URL: ${NETGUARD_PUBLIC_URL:-https://192.168.56.15}
+      NETGUARD_ALERT_TIMEZONE: ${NETGUARD_ALERT_TIMEZONE:-America/Sao_Paulo}
+      ALERT_CHANNEL_COOLDOWN_SEC: ${ALERT_CHANNEL_COOLDOWN_SEC:-600}
+      HOUSEKEEPER_INTERVAL_SEC: ${HOUSEKEEPER_INTERVAL_SEC:-3600}
+      HOUSEKEEPER_BATCH_ROWS: ${HOUSEKEEPER_BATCH_ROWS:-50000}
+      RETENTION_METRICS_DAYS: ${RETENTION_METRICS_DAYS:-30}
+      RETENTION_SYSLOG_DAYS: ${RETENTION_SYSLOG_DAYS:-14}
+      RETENTION_ANOMALY_SCORES_DAYS: ${RETENTION_ANOMALY_SCORES_DAYS:-30}
+      RETENTION_AI_INSIGHTS_DAYS: ${RETENTION_AI_INSIGHTS_DAYS:-30}
+      RETENTION_NOTIFICATIONS_DAYS: ${RETENTION_NOTIFICATIONS_DAYS:-180}
+      RETENTION_RESOLVED_INCIDENTS_DAYS: ${RETENTION_RESOLVED_INCIDENTS_DAYS:-180}
+    depends_on:
+      db:
+        condition: service_healthy
+      loop-risk-migrate:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - default
+      - lab_net
+
+  telegram-ai-bot:
+    build: ./api
+    image: netguard-api
+    restart: unless-stopped
+    command: ["python", "telegram_ai_bot.py"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+      NETGUARD_API_BASE_URL: ${NETGUARD_API_BASE_URL:-http://api:8000}
+      NETGUARD_SERVICE_TOKEN: ${NETGUARD_SERVICE_TOKEN:-netguard-local-service-token-change-me}
+      TELEGRAM_AI_BOT_ENABLED: ${TELEGRAM_AI_BOT_ENABLED:-true}
+      TELEGRAM_AI_POLL_INTERVAL_SEC: ${TELEGRAM_AI_POLL_INTERVAL_SEC:-5}
+      TELEGRAM_AI_RESPONSE_TIMEOUT_SEC: ${TELEGRAM_AI_RESPONSE_TIMEOUT_SEC:-180}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      api:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - default
+
+  poller:
+    build: ./poller
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+      LEGACY_SNMP_ENABLED: "false"
+      POLL_INTERVAL: "30"
+      POLL_SCHEDULER_TICK_SEC: "5"
+      DEFAULT_COLLECTION_TIMEOUT_SEC: "1"
+      DEFAULT_COLLECTION_RETRIES: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - lab_net
+
+  ui:
+    build: ./ui
+    image: netguard-ui
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3100:80"
+
+  grafana:
+    build:
+      context: ./infra/grafana-provisioning
+      dockerfile: Dockerfile
+    image: netguard-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-https://netguard.local/grafana/}
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_DEFAULT_LOCALE: pt-BR
+    depends_on:
+      db:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    volumes:
+      - infra_grafdata:/var/lib/grafana
+
+  snmpd:
+    image: polinux/snmpd
+    container_name: netguard-lab-snmpd
+    environment:
+      - SNMP_COMMUNITY=public
+    restart: unless-stopped
+
+  iperf3:
+    image: networkstatic/iperf3
+    container_name: netguard-lab-iperf3
+    command: ["-s"]
+    ports:
+      - "5201:5201/tcp"
+      - "5201:5201/udp"
+    restart: unless-stopped
+
+  syslog:
+    build: ./infra/syslog
+    restart: unless-stopped
+    ports:
+      - "514:514/udp"
+    volumes:
+      - syslog_data:/var/log/netguard
+    networks:
+      - default
+      - lab_net
+
+  syslog-collector:
+    build: ./poller/syslog
+    restart: unless-stopped
+    environment:
+      SYSLOG_FILE: /var/log/netguard/syslog.log
+      SYSLOG_STATE_FILE: /var/log/netguard/syslog-collector.offset
+      NETGUARD_DB_DSN: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+    volumes:
+      - syslog_data:/var/log/netguard
+    depends_on:
+      db:
+        condition: service_healthy
+      syslog:
+        condition: service_started
+
+  snmp-poller:
+    build: ./poller/snmp
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+      SNMP_INTERVAL_SEC: "30"
+      SNMP_SCHEDULER_TICK_SEC: "5"
+      DEFAULT_COLLECTION_TIMEOUT_SEC: "1"
+      DEFAULT_COLLECTION_RETRIES: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+      - lab_net
+
+  lab-linux-01:
+    build: ./infra/lab-linux-01
+    container_name: netguard-lab-linux-01
+    hostname: lab-linux-01
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      syslog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "snmpget -v2c -c netguard localhost 1.3.6.1.2.1.1.3.0 >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      lab_net:
+        ipv4_address: 172.30.10.10
+
+  lab-bootstrap:
+    build: ./infra/lab-bootstrap
+    restart: "no"
+    environment:
+      API_URL: http://api:8000
+      NETGUARD_SERVICE_TOKEN: ${NETGUARD_SERVICE_TOKEN:-netguard-local-service-token-change-me}
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      lab-linux-01:
+        condition: service_healthy
+
+  anomaly-engine:
+    build: ./poller/anomaly
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+      ANOMALY_INTERVAL_SEC: "30"
+      EWMA_ALPHA: "0.3"
+      Z_THRESHOLD: "2.0"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  anomaly-to-incident:
+    build: ./poller/anomaly_to_incident
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+      ENGINE_INTERVAL_SEC: "30"
+      WINDOW_MIN: "10"
+      MIN_HITS: "3"
+      MIN_Z: "2.0"
+      NETGUARD_API_URL: http://api:8000
+      NETGUARD_SERVICE_TOKEN: ${NETGUARD_SERVICE_TOKEN:-netguard-local-service-token-change-me}
+      ALERT_NOTIFY_TIMEOUT_SEC: "5"
+      ALERT_NOTIFY_PENDING_MIN_SEVERITY: "MEDIUM"
+      ALERT_NOTIFY_RECOVERIES_ENABLED: "true"
+      AUTO_RESOLVE_ALERTS_ENABLED: "true"
+      AUTO_RESOLVE_AFTER_MINUTES: "5"
+      AUTO_RESOLVE_MAX_PER_CYCLE: "20"
+      AUTO_RESOLVE_STARTUP_GRACE_MINUTES: "1"
+      SIGNAL_ALERTS_ENABLED: "true"
+      SYSLOG_ALERTS_ENABLED: "true"
+      SYSLOG_ALERT_MIN_SEVERITY: "warning"
+      SYSLOG_ALERT_LOOP_COMPONENTS_ENABLED: "false"
+      SYSLOG_ALERT_INTERFACE_FLAP_ENABLED: "true"
+      SYSLOG_ALERT_INTERFACE_FLAP_MIN_EVENTS: "4"
+      SYSLOG_ALERT_INTERFACE_FLAP_WINDOW_SEC: "120"
+      SYSLOG_ALERT_INTERFACE_FLAP_MIN_SEVERITY: "notice"
+      PREDICTION_ALERTS_ENABLED: "true"
+      PREDICTION_ALERT_MIN_SCORE: "0.50"
+      PREDICTION_ALERT_TOP_ITEMS: "5"
+      LOOP_RISK_WINDOW_SEC: "600"
+      LOOP_RISK_STALE_RESOLVE_SEC: ${LOOP_RISK_STALE_RESOLVE_SEC:-1800}
+      LOOP_RISK_STALE_RESOLVE_NOTIFY: ${LOOP_RISK_STALE_RESOLVE_NOTIFY:-false}
+      SIGNAL_ALERT_LOOKBACK_SEC: "120"
+      SIGNAL_ALERT_CACHE_TTL_SEC: "600"
+      AVAILABILITY_ALERTS_ENABLED: "true"
+      AVAILABILITY_ICMP_STALE_MULTIPLIER: "4"
+      AVAILABILITY_SNMP_STALE_MULTIPLIER: "4"
+      AVAILABILITY_SYSLOG_STALE_SEC: "300"
+      AVAILABILITY_HOST_DOWN_SAMPLES: "2"
+      AVAILABILITY_MIN_STALE_SEC: "60"
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+
+  housekeeper:
+    build: ./poller/housekeeper
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://netguard:netguard@db:5432/netguard}
+      HOUSEKEEPER_ENABLED: ${HOUSEKEEPER_ENABLED:-true}
+      HOUSEKEEPER_INTERVAL_SEC: ${HOUSEKEEPER_INTERVAL_SEC:-3600}
+      HOUSEKEEPER_BATCH_ROWS: ${HOUSEKEEPER_BATCH_ROWS:-50000}
+      RETENTION_METRICS_DAYS: ${RETENTION_METRICS_DAYS:-30}
+      RETENTION_SYSLOG_DAYS: ${RETENTION_SYSLOG_DAYS:-14}
+      RETENTION_ANOMALY_SCORES_DAYS: ${RETENTION_ANOMALY_SCORES_DAYS:-30}
+      RETENTION_AI_INSIGHTS_DAYS: ${RETENTION_AI_INSIGHTS_DAYS:-30}
+      RETENTION_NOTIFICATIONS_DAYS: ${RETENTION_NOTIFICATIONS_DAYS:-180}
+      RETENTION_RESOLVED_INCIDENTS_DAYS: ${RETENTION_RESOLVED_INCIDENTS_DAYS:-180}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  infra_dbdata:
+    name: infra_dbdata
+    external: true
+  infra_grafdata:
+    name: infra_grafdata
+    external: true
+  syslog_data:
+    name: syslog_data
+  caddy_data:
+    name: netguard_caddy_data
+  caddy_config:
+    name: netguard_caddy_config
+
+networks:
+  lab_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24

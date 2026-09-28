@@ -1,0 +1,257 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH latest_alive AS (SELECT DISTINCT ON (asset_id) asset_id, value, ts FROM metrics WHERE metric = 'host.alive' ORDER BY asset_id, ts DESC), latest_rtt AS (SELECT DISTINCT ON (asset_id) asset_id, value, ts FROM metrics WHERE metric = 'icmp.rtt_ms' ORDER BY asset_id, ts DESC), latest_loss AS (SELECT DISTINCT ON (asset_id) asset_id, value, ts FROM metrics WHERE metric = 'icmp.loss_pct' ORDER BY asset_id, ts DESC), latest_loop AS (SELECT DISTINCT ON (asset_id) asset_id, score, ts FROM anomaly_scores WHERE metric = 'loop_risk' ORDER BY asset_id, ts DESC), open_incidents AS (SELECT asset_id, count(*) AS open_incidents FROM incidents WHERE lower(status) = 'open' GROUP BY asset_id) SELECT a.name AS \"Host\", COALESCE(g.path, 'Sem grupo') AS \"Grupo\", COALESCE(t.name, 'Sem template') AS \"Template\", CASE WHEN NOT a.enabled THEN 'Inativo' WHEN la.value IS NULL THEN 'Sem telemetria' WHEN la.value < 1 THEN 'Indisponivel' ELSE 'Saudavel' END AS \"Saude\", COALESCE(oi.open_incidents, 0) AS \"Incidentes abertos\", ROUND(COALESCE(ll.score, 0)::numeric * 100, 0) AS \"Loop risk (%)\", ROUND(lr.value::numeric, 2) AS \"RTT (ms)\", ROUND(lx.value::numeric, 2) AS \"Perda (%)\", COALESCE(ll.ts, lr.ts, lx.ts, la.ts) AS \"Ultima atividade\" FROM assets a LEFT JOIN host_groups g ON g.id = a.group_id LEFT JOIN monitoring_templates t ON t.id = a.template_id LEFT JOIN latest_alive la ON la.asset_id = a.id LEFT JOIN latest_rtt lr ON lr.asset_id = a.id LEFT JOIN latest_loss lx ON lx.asset_id = a.id LEFT JOIN latest_loop ll ON ll.asset_id = a.id LEFT JOIN open_incidents oi ON oi.asset_id = a.id WHERE (${group_id} = -1 OR COALESCE(a.group_id, -1) = ${group_id}) AND (${template_id} = -1 OR COALESCE(a.template_id, -1) = ${template_id}) ORDER BY COALESCE(oi.open_incidents, 0) DESC, COALESCE(ll.score, 0) DESC, a.name",
+          "refId": "A"
+        }
+      ],
+      "title": "Hosts do filtro atual",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT m.ts AS \"time\", a.name AS metric, m.value FROM metrics m JOIN assets a ON a.id = m.asset_id WHERE $__timeFilter(m.ts) AND m.metric = 'icmp.rtt_ms' AND (${group_id} = -1 OR COALESCE(a.group_id, -1) = ${group_id}) AND (${template_id} = -1 OR COALESCE(a.template_id, -1) = ${template_id}) ORDER BY 1, 2",
+          "refId": "A"
+        }
+      ],
+      "title": "RTT medio por host",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT INITCAP(COALESCE(i.severity, 'info')) AS \"Severidade\", COUNT(*) AS \"Abertos\", MAX(COALESCE(i.last_seen_at, i.opened_at)) AS \"Ultima ocorrencia\" FROM incidents i LEFT JOIN assets a ON a.id = i.asset_id WHERE LOWER(i.status) = 'open' AND (${group_id} = -1 OR COALESCE(a.group_id, -1) = ${group_id}) AND (${template_id} = -1 OR COALESCE(a.template_id, -1) = ${template_id}) GROUP BY 1 ORDER BY 2 DESC, 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Incidentes abertos por severidade",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 17
+      },
+      "id": 4,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT a.name AS \"Host\", COALESCE(g.path, 'Sem grupo') AS \"Grupo\", ROUND(s.score::numeric * 100, 0) AS \"Score (%)\", s.ts AS \"Ultimo score\" FROM (SELECT DISTINCT ON (asset_id) asset_id, score, ts FROM anomaly_scores WHERE metric = 'loop_risk' ORDER BY asset_id, ts DESC) s JOIN assets a ON a.id = s.asset_id LEFT JOIN host_groups g ON g.id = a.group_id WHERE (${group_id} = -1 OR COALESCE(a.group_id, -1) = ${group_id}) AND (${template_id} = -1 OR COALESCE(a.template_id, -1) = ${template_id}) AND s.score >= 0.20 ORDER BY s.score DESC, s.ts DESC LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "Loop risk atual",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 14,
+        "x": 10,
+        "y": 17
+      },
+      "id": 5,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT * FROM (SELECT s.ts AS \"Hora\", 'Syslog' AS \"Fonte\", COALESCE(a.name, s.hostname) AS \"Host\", COALESCE(g.path, 'Sem grupo') AS \"Grupo\", COALESCE(s.subsystem, 'syslog') AS \"Tipo\", COALESCE(s.severity, 'info') AS \"Severidade\", s.message AS \"Mensagem\" FROM syslog_events s LEFT JOIN assets a ON a.id = s.asset_id LEFT JOIN host_groups g ON g.id = a.group_id WHERE $__timeFilter(s.ts) AND (${group_id} = -1 OR COALESCE(a.group_id, -1) = ${group_id}) AND (${template_id} = -1 OR COALESCE(a.template_id, -1) = ${template_id}) UNION ALL SELECT COALESCE(i.last_seen_at, i.opened_at) AS \"Hora\", 'Incidente' AS \"Fonte\", COALESCE(a.name, i.hostname) AS \"Host\", COALESCE(g.path, 'Sem grupo') AS \"Grupo\", i.incident_type AS \"Tipo\", i.severity AS \"Severidade\", i.title AS \"Mensagem\" FROM incidents i LEFT JOIN assets a ON a.id = i.asset_id LEFT JOIN host_groups g ON g.id = a.group_id WHERE $__timeFilter(COALESCE(i.last_seen_at, i.opened_at)) AND (${group_id} = -1 OR COALESCE(a.group_id, -1) = ${group_id}) AND (${template_id} = -1 OR COALESCE(a.template_id, -1) = ${template_id})) recent ORDER BY \"Hora\" DESC LIMIT 25",
+          "refId": "A"
+        }
+      ],
+      "title": "Sinais recentes",
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "style": "dark",
+  "tags": [
+    "netguard",
+    "operations"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": "-1",
+        "current": {
+          "selected": true,
+          "text": "Todos os grupos",
+          "value": "-1"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "netguard-postgres"
+        },
+        "definition": "SELECT id AS __value, path AS __text FROM host_groups ORDER BY path",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Grupo",
+        "multi": false,
+        "name": "group_id",
+        "options": [],
+        "query": "SELECT id AS __value, path AS __text FROM host_groups ORDER BY path",
+        "refresh": 1,
+        "skipUrlSync": false,
+        "type": "query"
+      },
+      {
+        "allValue": "-1",
+        "current": {
+          "selected": true,
+          "text": "Todos os templates",
+          "value": "-1"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "netguard-postgres"
+        },
+        "definition": "SELECT id AS __value, name AS __text FROM monitoring_templates ORDER BY enabled DESC, name",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Template",
+        "multi": false,
+        "name": "template_id",
+        "options": [],
+        "query": "SELECT id AS __value, name AS __text FROM monitoring_templates ORDER BY enabled DESC, name",
+        "refresh": 1,
+        "skipUrlSync": false,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "NetGuard - Visao operacional",
+  "uid": "netguard-ops-overview",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,0 +1,1094 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 95
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT COALESCE(AVG(value) * 100, 0) AS \"Disponibilidade\"\nFROM metrics\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'host.alive'",
+          "refId": "A"
+        }
+      ],
+      "title": "Disponibilidade ICMP",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 150
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT value AS \"RTT atual\"\nFROM metrics\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'icmp.rtt_ms'\nORDER BY ts DESC\nLIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "RTT atual",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT value AS \"Perda atual\"\nFROM metrics\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'icmp.loss_pct'\nORDER BY ts DESC\nLIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Perda atual",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*)::double precision AS \"Incidentes abertos\"\nFROM incidents\nWHERE asset_id = ${asset_id}\n  AND status = 'open'",
+          "refId": "A"
+        }
+      ],
+      "title": "Incidentes abertos",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 40
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT COALESCE(MAX(score) * 100, 0) AS \"Loop risk\"\nFROM anomaly_scores\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'loop_risk'",
+          "refId": "A"
+        }
+      ],
+      "title": "Loop risk atual",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "Nao encontrado"
+                },
+                "1": {
+                  "text": "Monitorado"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT\n  now() AS \"time\",\n  CASE\n    WHEN EXISTS (\n      SELECT 1\n      FROM assets\n      WHERE id = ${asset_id}\n        AND enabled = true\n    ) THEN 1::double precision\n    ELSE 0::double precision\n  END AS \"Host monitorado\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Host monitorado",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 150
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 4
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", value AS \"RTT ms\"\nFROM metrics\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'icmp.rtt_ms'\nORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "RTT ICMP",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 4
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", value AS \"Perda %\"\nFROM metrics\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'icmp.loss_pct'\nORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Perda ICMP",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 95
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", value * 100 AS \"Disponibilidade\"\nFROM metrics\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'host.alive'\nORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Disponibilidade no periodo",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "WITH filtered AS (\n  SELECT\n    ts,\n    COALESCE(labels->>'ifName', REPLACE(SPLIT_PART(metric, '|', 2), 'ifIndex=', 'ifIndex ')) AS iface,\n    metric,\n    value,\n    LAG(value) OVER (PARTITION BY metric ORDER BY ts) AS previous_value,\n    EXTRACT(EPOCH FROM ts - LAG(ts) OVER (PARTITION BY metric ORDER BY ts)) AS seconds\n  FROM metrics\n  WHERE $__timeFilter(ts)\n    AND asset_id = ${asset_id}\n    AND metric LIKE 'snmp.if.in_octets|%'\n), rates AS (\n  SELECT\n    ts,\n    iface,\n    CASE\n      WHEN seconds > 0 AND value >= previous_value THEN ((value - previous_value) * 8) / seconds\n      ELSE NULL\n    END AS bps\n  FROM filtered\n)\nSELECT ts AS \"time\", iface AS metric, bps AS value\nFROM rates\nWHERE bps IS NOT NULL\n  AND iface IN (\n    SELECT iface\n    FROM rates\n    GROUP BY iface\n    ORDER BY MAX(bps) DESC NULLS LAST\n    LIMIT 8\n  )\nORDER BY 1, 2",
+          "refId": "A"
+        }
+      ],
+      "title": "Trafego de entrada por interface",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "WITH filtered AS (\n  SELECT\n    ts,\n    COALESCE(labels->>'ifName', REPLACE(SPLIT_PART(metric, '|', 2), 'ifIndex=', 'ifIndex ')) AS iface,\n    metric,\n    value,\n    LAG(value) OVER (PARTITION BY metric ORDER BY ts) AS previous_value,\n    EXTRACT(EPOCH FROM ts - LAG(ts) OVER (PARTITION BY metric ORDER BY ts)) AS seconds\n  FROM metrics\n  WHERE $__timeFilter(ts)\n    AND asset_id = ${asset_id}\n    AND metric LIKE 'snmp.if.out_octets|%'\n), rates AS (\n  SELECT\n    ts,\n    iface,\n    CASE\n      WHEN seconds > 0 AND value >= previous_value THEN ((value - previous_value) * 8) / seconds\n      ELSE NULL\n    END AS bps\n  FROM filtered\n)\nSELECT ts AS \"time\", iface AS metric, bps AS value\nFROM rates\nWHERE bps IS NOT NULL\n  AND iface IN (\n    SELECT iface\n    FROM rates\n    GROUP BY iface\n    ORDER BY MAX(bps) DESC NULLS LAST\n    LIMIT 8\n  )\nORDER BY 1, 2",
+          "refId": "A"
+        }
+      ],
+      "title": "Trafego de saida por interface",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "WITH filtered AS (\n  SELECT\n    ts,\n    COALESCE(labels->>'ifName', REPLACE(SPLIT_PART(metric, '|', 2), 'ifIndex=', 'ifIndex ')) AS iface,\n    REPLACE(SPLIT_PART(metric, '|', 1), 'snmp.if.', '') AS kind,\n    metric,\n    value,\n    LAG(value) OVER (PARTITION BY metric ORDER BY ts) AS previous_value\n  FROM metrics\n  WHERE $__timeFilter(ts)\n    AND asset_id = ${asset_id}\n    AND (\n      metric LIKE 'snmp.if.in_errors|%'\n      OR metric LIKE 'snmp.if.out_errors|%'\n      OR metric LIKE 'snmp.if.in_discards|%'\n      OR metric LIKE 'snmp.if.out_discards|%'\n    )\n), deltas AS (\n  SELECT\n    ts,\n    iface,\n    kind,\n    CASE WHEN value >= previous_value THEN value - previous_value ELSE 0 END AS delta_value\n  FROM filtered\n  WHERE previous_value IS NOT NULL\n), ranked AS (\n  SELECT iface\n  FROM deltas\n  GROUP BY iface\n  ORDER BY SUM(delta_value) DESC NULLS LAST\n  LIMIT 8\n)\nSELECT ts AS \"time\", iface || ' ' || kind AS metric, delta_value AS value\nFROM deltas\nWHERE iface IN (SELECT iface FROM ranked)\nORDER BY 1, 2",
+          "refId": "A"
+        }
+      ],
+      "title": "Erros e descartes por interface",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 40
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 20
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", score * 100 AS \"Loop risk\"\nFROM anomaly_scores\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\n  AND metric = 'loop_risk'\nORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Loop risk",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bits"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 20
+      },
+      "id": 14,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH latest AS (\n  SELECT\n    REPLACE(key, 'ifIndex=', 'Interface ') AS iface,\n    metric,\n    value,\n    ROW_NUMBER() OVER (PARTITION BY metric, key ORDER BY ts DESC) AS rn\n  FROM anomaly_scores\n  WHERE asset_id = ${asset_id}\n    AND metric IN ('snmp.if.in_octets.delta', 'snmp.if.out_octets.delta')\n), summed AS (\n  SELECT iface, SUM(COALESCE(value, 0)) * 8 AS bits_interval\n  FROM latest\n  WHERE rn = 1\n  GROUP BY iface\n)\nSELECT iface AS metric, bits_interval AS value\nFROM summed\nORDER BY value DESC\nLIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Top interfaces por trafego",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 14,
+        "x": 0,
+        "y": 28
+      },
+      "id": 15,
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH latest AS (\n  SELECT\n    COALESCE(labels->>'ifName', REPLACE(SPLIT_PART(metric, '|', 2), 'ifIndex=', 'ifIndex ')) AS iface,\n    REPLACE(SPLIT_PART(metric, '|', 1), 'snmp.if.', '') AS item,\n    value,\n    ts,\n    ROW_NUMBER() OVER (PARTITION BY metric ORDER BY ts DESC) AS rn\n  FROM metrics\n  WHERE asset_id = ${asset_id}\n    AND metric LIKE 'snmp.if.%|%'\n), pivoted AS (\n  SELECT\n    iface,\n    MAX(CASE WHEN item = 'admin_status' THEN value END) AS admin_status,\n    MAX(CASE WHEN item = 'oper_status' THEN value END) AS oper_status,\n    MAX(CASE WHEN item = 'in_octets' THEN value END) AS in_octets,\n    MAX(CASE WHEN item = 'out_octets' THEN value END) AS out_octets,\n    MAX(CASE WHEN item = 'in_errors' THEN value END) AS in_errors,\n    MAX(CASE WHEN item = 'out_errors' THEN value END) AS out_errors,\n    MAX(CASE WHEN item = 'in_discards' THEN value END) AS in_discards,\n    MAX(CASE WHEN item = 'out_discards' THEN value END) AS out_discards,\n    MAX(ts) AS last_sample\n  FROM latest\n  WHERE rn = 1\n  GROUP BY iface\n)\nSELECT\n  iface AS \"Interface\",\n  CASE admin_status WHEN 1 THEN 'UP' WHEN 2 THEN 'DOWN' WHEN 3 THEN 'TESTING' ELSE COALESCE(admin_status::text, '-') END AS \"Admin\",\n  CASE oper_status WHEN 1 THEN 'UP' WHEN 2 THEN 'DOWN' WHEN 3 THEN 'TESTING' WHEN 4 THEN 'UNKNOWN' WHEN 5 THEN 'DORMANT' WHEN 6 THEN 'NOT PRESENT' WHEN 7 THEN 'LOWER LAYER DOWN' ELSE COALESCE(oper_status::text, '-') END AS \"Oper\",\n  ROUND(COALESCE(in_octets, 0)::numeric, 0) AS \"In octets\",\n  ROUND(COALESCE(out_octets, 0)::numeric, 0) AS \"Out octets\",\n  ROUND(COALESCE(in_errors, 0)::numeric, 0) AS \"In errors\",\n  ROUND(COALESCE(out_errors, 0)::numeric, 0) AS \"Out errors\",\n  ROUND(COALESCE(in_discards, 0)::numeric, 0) AS \"In discards\",\n  ROUND(COALESCE(out_discards, 0)::numeric, 0) AS \"Out discards\",\n  last_sample AS \"Ultima coleta\"\nFROM pivoted\nORDER BY COALESCE(in_octets, 0) + COALESCE(out_octets, 0) DESC\nLIMIT 24",
+          "refId": "A"
+        }
+      ],
+      "title": "Interfaces - snapshot SNMP",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 10,
+        "x": 14,
+        "y": 28
+      },
+      "id": 16,
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  COALESCE(last_seen_at, opened_at) AS \"Hora\",\n  UPPER(COALESCE(severity, 'info')) AS \"Severidade\",\n  UPPER(COALESCE(status, 'open')) AS \"Status\",\n  UPPER(COALESCE(problem_type, incident_type, '-')) AS \"Tipo\",\n  COALESCE(details->>'evidence_summary', description, title) AS \"Evidencia\"\nFROM incidents\nWHERE asset_id = ${asset_id}\nORDER BY COALESCE(last_seen_at, opened_at) DESC\nLIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "Incidentes recentes",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 38
+      },
+      "id": 17,
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ts AS \"Hora\",\n  UPPER(COALESCE(severity, 'info')) AS \"Severidade\",\n  COALESCE(subsystem, process, 'syslog') AS \"Origem\",\n  COALESCE(iface, '-') AS \"Interface\",\n  message AS \"Mensagem\"\nFROM syslog_events\nWHERE asset_id = ${asset_id}\nORDER BY ts DESC\nLIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Syslog recente",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 38
+      },
+      "id": 18,
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ts AS \"Hora\",\n  REPLACE(metric, 'snmp.if.', '') AS \"Metrica\",\n  REPLACE(key, 'ifIndex=', 'Interface ') AS \"Chave\",\n  ROUND((score * 100)::numeric, 1) AS \"Score %\",\n  ROUND(COALESCE(z, 0)::numeric, 2) AS \"Z-score\",\n  ROUND(COALESCE(value, 0)::numeric, 2) AS \"Valor\",\n  ROUND(COALESCE(baseline_mean, 0)::numeric, 2) AS \"Baseline\"\nFROM anomaly_scores\nWHERE $__timeFilter(ts)\n  AND asset_id = ${asset_id}\nORDER BY score DESC NULLS LAST, ts DESC\nLIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Anomalias recentes",
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "style": "dark",
+  "tags": [
+    "netguard",
+    "host",
+    "network",
+    "switch",
+    "snmp"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "netguard-postgres"
+        },
+        "definition": "SELECT id AS __value, name || ' (' || ip::text || ')' AS __text FROM assets WHERE enabled = true ORDER BY name",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Host",
+        "multi": false,
+        "name": "asset_id",
+        "options": [],
+        "query": "SELECT id AS __value, name || ' (' || ip::text || ')' AS __text FROM assets WHERE enabled = true ORDER BY name",
+        "refresh": 1,
+        "skipUrlSync": false,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m"
+    ]
+  },
+  "timezone": "browser",
+  "title": "NetGuard - Host de rede",
+  "uid": "netguard-host-network",
+  "version": 7,
+  "weekStart": ""
+}

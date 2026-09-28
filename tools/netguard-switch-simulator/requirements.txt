@@ -1,0 +1,4 @@
+customtkinter>=5.2.2
+psutil>=5.9.8
+pysnmp>=4.4.12,<5
+pyasn1>=0.4.8,<0.5

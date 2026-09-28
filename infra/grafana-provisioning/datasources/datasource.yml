@@ -1,0 +1,20 @@
+apiVersion: 1
+prune: true
+datasources:
+  - name: NetGuard-Postgres
+    orgId: 1
+    uid: netguard-postgres
+    type: postgres
+    access: proxy
+    isDefault: true
+    editable: true
+    version: 1
+    url: db:5432
+    user: netguard
+    secureJsonData:
+      password: netguard
+    jsonData:
+      database: netguard
+      sslmode: disable
+      timeInterval: 5s
+      postgresVersion: 1500

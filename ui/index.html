@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <title>NetGuard Hosts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:24px;background:#0b121b;color:#e6eef8}
+    h1{margin:0 0 16px}
+    .card{background:#111b27;border:1px solid #223247;border-radius:12px;padding:16px;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px 10px;border-bottom:1px solid #223247}
+    th{text-align:left;color:#8fb3d9;font-weight:600}
+    input,select{background:#0f1722;border:1px solid #223247;border-radius:6px;color:#e6eef8;padding:8px;width:100%}
+    .row{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:10px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{background:#2b6cb0;border:0;color:white;padding:9px 12px;border-radius:8px;cursor:pointer}
+    button.danger{background:#c53030}
+    .right{float:right}
+    small{color:#8fb3d9}
+  </style>
+</head>
+<body>
+  <h1>NetGuard Hosts</h1>
+
+  <div class="card">
+    <h3>Novo / Editar Host</h3>
+    <div class="row">
+      <div><small>Nome</small><input id="name" /></div>
+      <div><small>IP</small><input id="ip" placeholder="10.0.0.1" /></div>
+      <div><small>SNMP (JSON)</small><input id="snmp" placeholder='{"version":"v2c","community":"public"}' /></div>
+      <div><small>Tags (JSON)</small><input id="tags" placeholder='{"site":"F1"}' /></div>
+    </div>
+    <div class="row2" style="margin-top:10px">
+      <div><small>Ativo</small>
+        <select id="enabled"><option value="true">true</option><option value="false">false</option></select>
+      </div>
+      <div>
+        <button id="saveBtn">Salvar</button>
+        <button id="clearBtn" class="right">Limpar</button>
+      </div>
+    </div>
+    <input type="hidden" id="editingId" />
+  </div>
+
+  <div class="card">
+    <h3>Hosts Monitorados</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Nome</th><th>IP</th><th>Ativo</th><th>SNMP</th><th>Tags</th><th></th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+<script>
+const API = location.origin.replace(':3100', ':8000'); // UI chama API
+
+const qs = s => document.querySelector(s);
+const j = (t) => { try { return t ? JSON.parse(t) : null } catch(e){ alert("JSON inválido"); throw e } };
+
+async function list() {
+  const r = await fetch(`${API}/hosts`);
+  const data = await r.json();
+  const tbody = qs('#tbody');
+  tbody.innerHTML = '';
+  data.forEach(a => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.id}</td>
+      <td>${a.name}</td>
+      <td>${a.ip}</td>
+      <td>${a.enabled}</td>
+      <td><small>${JSON.stringify(a.snmp_profile || {})}</small></td>
+      <td><small>${JSON.stringify(a.tags || {})}</small></td>
+      <td>
+        <button onclick='edit(${a.id})'>Editar</button>
+        <button class="danger" onclick='del(${a.id})'>Apagar</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function save() {
+  const body = {
+    name: qs('#name').value.trim(),
+    ip: qs('#ip').value.trim(),
+    snmp_profile: j(qs('#snmp').value.trim() || '{}'),
+    tags: j(qs('#tags').value.trim() || '{}'),
+    enabled: qs('#enabled').value === 'true'
+  };
+  const id = qs('#editingId').value;
+
+  const r = await fetch(`${API}/hosts${id ? '/'+id : ''}`, {
+    method: id ? 'PUT' : 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){ alert('Erro ao salvar'); return; }
+  clearForm(); list();
+}
+
+async function edit(id){
+  const r = await fetch(`${API}/hosts`);
+  const data = await r.json();
+  const a = data.find(x => x.id === id);
+  if(!a) return;
+  qs('#editingId').value = a.id;
+  qs('#name').value = a.name;
+  qs('#ip').value = a.ip;
+  qs('#snmp').value = JSON.stringify(a.snmp_profile || {});
+  qs('#tags').value = JSON.stringify(a.tags || {});
+  qs('#enabled').value = a.enabled ? 'true' : 'false';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function del(id){
+  if(!confirm('Apagar host #' + id + '?')) return;
+  const r = await fetch(`${API}/hosts/${id}`, {method:'DELETE'});
+  if(!r.ok){ alert('Erro ao apagar'); return; }
+  list();
+}
+
+function clearForm(){
+  qs('#editingId').value = '';
+  qs('#name').value = '';
+  qs('#ip').value = '';
+  qs('#snmp').value = '';
+  qs('#tags').value = '';
+  qs('#enabled').value = 'true';
+}
+
+qs('#saveBtn').onclick = save;
+qs('#clearBtn').onclick = clearForm;
+list();
+</script>
+</body>
+</html>

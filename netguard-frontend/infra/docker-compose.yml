@@ -1,0 +1,8 @@
+services:
+  web:
+    build:
+      context: ..           # sobe um nível: usa a pasta netguard-frontend como contexto
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8081:80"           # acessa em http://IP:8081

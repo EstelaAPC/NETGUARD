@@ -1,0 +1,6 @@
+{
+  "uptime_pct": 99.97,
+  "incidents_24h": { "total": 3, "resolved": 2, "ongoing": 1 },
+  "assets": 128,
+  "latency_ms_avg": 23
+}

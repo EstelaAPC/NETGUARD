@@ -1,0 +1,5 @@
+[
+  { "id": 101, "type": "cpu_high", "title": "CPU alta", "target": "srv-app-02", "ago": "há 12min", "severity": "warn", "desc": "superou 85% de uso" },
+  { "id": 102, "type": "link_down", "title": "Link down", "target": "switch-edge-07", "ago": "há 36min", "severity": "crit", "desc": "sem resposta ICMP" },
+  { "id": 103, "type": "recovered", "title": "Recuperado", "target": "srv-db-01", "ago": "há 1h", "severity": "ok", "desc": "voltou ao normal" }
+]

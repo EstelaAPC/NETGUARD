@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+env/
+*.log
+
+# Node / React
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+
+# Docker / misc
+*.pid
+.DS_Store
+.codex-visual/
+/System.Management.Automation.Internal.Host.InternalHost
+infra/dbdata/
+infra/*.bak.*
+/infra/docker-compose_old.yml
+
+# lixo do docker build / compose
+=
+CACHED
+[internal]
+exporting
+naming
+reading
+resolving
+transferring
+writing
+
+# (opcional) outros lixos comuns
+*.log
+*.pyc
+__pycache__/
+node_modules/
+dist/
+.env
+!.env.example
+refs/zabbix/

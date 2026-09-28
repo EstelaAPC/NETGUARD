@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-slate-950 text-slate-200 antialiased;
+    margin: 0;
+    overflow-x: hidden; /* tira faixa branca lateral */
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+@layer components {
+  .ng-shell {
+    min-height: 100vh;
+    padding-left: 18rem;
+    transition: padding-left 200ms ease;
+  }
+
+  :root[data-sidebar-collapsed="1"] .ng-shell {
+    padding-left: 5rem;
+  }
+
+  .ng-sidebar-offset-left {
+    left: 18rem;
+    transition: left 200ms ease;
+  }
+
+  :root[data-sidebar-collapsed="1"] .ng-sidebar-offset-left {
+    left: 5rem;
+  }
+}

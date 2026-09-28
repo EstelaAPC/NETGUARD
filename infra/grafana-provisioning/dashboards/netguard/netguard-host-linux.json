@@ -1,0 +1,284 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", value FROM metrics WHERE $__timeFilter(ts) AND asset_id = ${asset_id} AND metric = 'host.alive' ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Disponibilidade",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", value FROM metrics WHERE $__timeFilter(ts) AND asset_id = ${asset_id} AND metric = 'icmp.rtt_ms' ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "RTT ICMP",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", value FROM metrics WHERE $__timeFilter(ts) AND asset_id = ${asset_id} AND metric = 'icmp.loss_pct' ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Perda ICMP",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 0,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT COALESCE(last_seen_at, opened_at) AS \"Hora\", INITCAP(COALESCE(severity, 'info')) AS \"Severidade\", INITCAP(COALESCE(status, 'open')) AS \"Status\", incident_type AS \"Tipo\", title AS \"Titulo\" FROM incidents WHERE asset_id = ${asset_id} ORDER BY COALESCE(last_seen_at, opened_at) DESC LIMIT 25",
+          "refId": "A"
+        }
+      ],
+      "title": "Incidentes do host",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 14,
+        "x": 10,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ts AS \"Hora\", COALESCE(severity, 'info') AS \"Severidade\", COALESCE(subsystem, 'syslog') AS \"Subsystem\", COALESCE(iface, '-') AS \"Interface\", message AS \"Mensagem\" FROM syslog_events WHERE asset_id = ${asset_id} ORDER BY ts DESC LIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Syslog recente",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "netguard-postgres"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 6,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "netguard-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ts AS \"Hora\", metric AS \"Metrica\", ROUND(score::numeric * 100, 0) AS \"Score (%)\", key AS \"Chave\", COALESCE(details->>'recommendation', '-') AS \"Recomendacao\" FROM anomaly_scores WHERE asset_id = ${asset_id} AND metric <> 'loop_risk' ORDER BY ts DESC, score DESC LIMIT 25",
+          "refId": "A"
+        }
+      ],
+      "title": "Anomalias recentes",
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "style": "dark",
+  "tags": [
+    "netguard",
+    "host",
+    "linux"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "netguard-postgres"
+        },
+        "definition": "SELECT id AS __value, name || ' (' || ip::text || ')' AS __text FROM assets WHERE enabled = true ORDER BY name",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Host",
+        "multi": false,
+        "name": "asset_id",
+        "options": [],
+        "query": "SELECT id AS __value, name || ' (' || ip::text || ')' AS __text FROM assets WHERE enabled = true ORDER BY name",
+        "refresh": 1,
+        "skipUrlSync": false,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "NetGuard - Host Linux",
+  "uid": "netguard-host-linux",
+  "version": 1,
+  "weekStart": ""
+}

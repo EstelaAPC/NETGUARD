@@ -1,0 +1,5 @@
+psycopg[binary]==3.2.1
+icmplib==3.0.4
+pysnmp==4.4.12
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
